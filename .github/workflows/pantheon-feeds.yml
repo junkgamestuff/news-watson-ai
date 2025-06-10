@@ -24,7 +24,10 @@ jobs:
         run: |
           echo "🔐 Authenticating with Pantheon..."
           terminus auth:login --machine-token=${{ secrets.TERMINUS_MACHINE_TOKEN }}
-          echo "✅ Authenticated as:"
+          echo "✅ Installing SSH key plugin..."
+          terminus self:plugin:install pantheon-systems/terminus-ssh-key-plugin
+          echo "🔐 Adding SSH key to Pantheon session..."
+          terminus ssh-key:add --yes
           terminus auth:whoami || echo "⚠️ Could not confirm authenticated user"
 
       - name: Run feeds-ulk 1 with debug
