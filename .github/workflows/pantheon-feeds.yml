@@ -25,7 +25,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.PANTHEON_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H appserver.${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }}.drush.in >> ~/.ssh/known_hosts
+          echo -e "Host *.drush.in\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
       - name: Authenticate Terminus
         run: |
