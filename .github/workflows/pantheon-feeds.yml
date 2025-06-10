@@ -1,0 +1,28 @@
+name: Run Pantheon Feeds Import
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour (UTC)
+  workflow_dispatch:      # Allow manual run too
+
+jobs:
+  run-feeds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (optional)
+        uses: actions/checkout@v4
+
+      - name: Install Terminus
+        run: |
+          curl -L https://github.com/pantheon-systems/terminus/releases/latest/download/terminus.phar -o terminus.phar
+          chmod +x terminus.phar
+          sudo mv terminus.phar /usr/local/bin/terminus
+
+      - name: Authenticate Terminus
+        run: terminus auth:login --machine-token=${{ secrets.TERMINUS_MACHINE_TOKEN }}
+
+      - name: Run feeds-ulk 1
+        run: terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 1
+
+      - name: Run feeds-ulk 2
+        run: terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 2
