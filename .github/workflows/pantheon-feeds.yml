@@ -20,22 +20,20 @@ jobs:
           sudo mv terminus.phar /usr/local/bin/terminus
           terminus --version
 
+      - name: Setup SSH access
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PANTHEON_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H appserver.${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }}.drush.in >> ~/.ssh/known_hosts
+
       - name: Authenticate Terminus
         run: |
-          echo "🔐 Authenticating with Pantheon..."
           terminus auth:login --machine-token=${{ secrets.TERMINUS_MACHINE_TOKEN }}
-          echo "✅ Installing SSH key plugin..."
-          terminus self:plugin:install pantheon-systems/terminus-ssh-key-plugin
-          echo "🔐 Adding SSH key to Pantheon session..."
-          terminus ssh-key:add --yes
           terminus auth:whoami || echo "⚠️ Could not confirm authenticated user"
 
-      - name: Run feeds-ulk 1 with debug
-        run: |
-          echo "🚀 Running feeds-ulk 1..."
-          terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 1 2>&1 || echo "❌ feeds-ulk 1 failed"
+      - name: Run feeds-ulk 1
+        run: terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 1
 
-      - name: Run feeds-ulk 2 with debug
-        run: |
-          echo "🚀 Running feeds-ulk 2..."
-          terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 2 2>&1 || echo "❌ feeds-ulk 2 failed"
+      - name: Run feeds-ulk 2
+        run: terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 2
