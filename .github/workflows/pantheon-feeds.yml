@@ -1,9 +1,9 @@
-name: Run Pantheon Feeds Import
+name: Run Pantheon Feeds Import (Debug Mode)
 
 on:
   schedule:
     - cron: '0 * * * *'  # Runs every hour (UTC)
-  workflow_dispatch:      # Allow manual run too
+  workflow_dispatch:
 
 jobs:
   run-feeds:
@@ -14,15 +14,25 @@ jobs:
 
       - name: Install Terminus
         run: |
+          echo "🔧 Installing Terminus..."
           curl -L https://github.com/pantheon-systems/terminus/releases/latest/download/terminus.phar -o terminus.phar
           chmod +x terminus.phar
           sudo mv terminus.phar /usr/local/bin/terminus
+          terminus --version
 
       - name: Authenticate Terminus
-        run: terminus auth:login --machine-token=${{ secrets.TERMINUS_MACHINE_TOKEN }}
+        run: |
+          echo "🔐 Authenticating with Pantheon..."
+          terminus auth:login --machine-token=${{ secrets.TERMINUS_MACHINE_TOKEN }}
+          echo "✅ Authenticated as:"
+          terminus auth:whoami || echo "⚠️ Could not confirm authenticated user"
 
-      - name: Run feeds-ulk 1
-        run: terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 1
+      - name: Run feeds-ulk 1 with debug
+        run: |
+          echo "🚀 Running feeds-ulk 1..."
+          terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 1 2>&1 || echo "❌ feeds-ulk 1 failed"
 
-      - name: Run feeds-ulk 2
-        run: terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 2
+      - name: Run feeds-ulk 2 with debug
+        run: |
+          echo "🚀 Running feeds-ulk 2..."
+          terminus drush ${{ secrets.PANTHEON_SITE }}.${{ secrets.PANTHEON_ENV }} -- feeds-ulk 2 2>&1 || echo "❌ feeds-ulk 2 failed"
